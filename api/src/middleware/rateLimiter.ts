@@ -43,6 +43,5 @@ export async function authRateLimiterMiddleware(
   }
 }
 
-export { rateLimiterMiddleware as rateLimiter };
 
 export { rateLimiter }
