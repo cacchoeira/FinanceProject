@@ -3,7 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "workspaces": ["web", "api"],
+  "workspaces": [
+    "web",
+    "api"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace=web",
     "dev:api": "npm run dev --workspace=api",
@@ -15,6 +18,17 @@
     "db:seed": "npm run db:seed --workspace=api"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.34.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.34.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.3.0",
+    "jiti": "^2.5.1",
+    "typescript-eslint": "^8.42.0"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.85.9",
+    "glob": "^11.0.3",
+    "multer": "^3.0.0-alpha.1"
   }
 }
