@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { MoreHorizontal, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { CreditCard, MoreHorizontal, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Transaction } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';

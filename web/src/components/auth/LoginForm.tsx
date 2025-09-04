@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { signIn } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
@@ -37,6 +39,7 @@ export function LoginForm() {
         toast.error(error.message);
       } else {
         toast.success(t('auth.welcomeBack'));
+        navigate('/dashboard'); // Adicione o redirecionamento aqui
       }
     } catch (error) {
       toast.error('An unexpected error occurred');

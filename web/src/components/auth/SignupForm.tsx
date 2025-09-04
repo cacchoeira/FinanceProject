@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,6 +24,7 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { signUp } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
@@ -42,7 +44,8 @@ export function SignupForm() {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Account created successfully! Please check your email to verify your account.');
+        toast.success('Account created successfully!');
+        navigate('/dashboard'); // Adicione o redirecionamento aqui
       }
     } catch (error) {
       toast.error('An unexpected error occurred');

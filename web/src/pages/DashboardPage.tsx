@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { 
@@ -16,7 +15,26 @@ import { useBusiness } from '../hooks/useBusiness';
 export function DashboardPage() {
   const { t } = useTranslation();
   const { selectedBusiness } = useBusiness();
-  const { transactions } = useTransactions(selectedBusiness?.id);
+  
+  // Verifique o selectedBusiness primeiro
+  if (!selectedBusiness) {
+      return (
+          <div className="flex items-center justify-center min-h-96 text-gray-600">
+              No business selected. Please go to settings to select one.
+          </div>
+      );
+  }
+
+  // Chame o hook useTransactions APENAS se houver um selectedBusiness
+  const { transactions, isLoading } = useTransactions(selectedBusiness.id);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
 
   // Calculate metrics from transactions
   const totalRevenue = transactions

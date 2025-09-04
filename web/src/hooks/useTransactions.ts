@@ -5,10 +5,12 @@ import { Transaction } from '../types';
 export function useTransactions(businessId?: string) {
   const queryClient = useQueryClient();
 
-  const { data: transactions = [], isLoading } = useQuery<Transaction[]>(
-    ['transactions', businessId],
-    async () => {
-      if (!businessId) return [];
+  // useQuery agora recebe um único objeto de configuração
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
+    queryKey: ['transactions', businessId],
+    queryFn: async () => {
+      // Esta verificação não é mais necessária aqui, pois `enabled: false` cuida disso
+      // if (!businessId) return [];
       
       const { data, error } = await supabase
         .from('transactions')
@@ -22,13 +24,13 @@ export function useTransactions(businessId?: string) {
       if (error) throw error;
       return data;
     },
-    {
-      enabled: !!businessId,
-    }
-  );
+    // O `enabled` desabilita a query se o businessId não existir
+    enabled: !!businessId,
+  });
 
-  const createTransactionMutation = useMutation(
-    async (transaction: Partial<Transaction>) => {
+  // Cada `useMutation` também recebe um único objeto
+  const createTransactionMutation = useMutation({
+    mutationFn: async (transaction: Partial<Transaction>) => {
       const { data, error } = await supabase
         .from('transactions')
         .insert([transaction])
@@ -38,15 +40,14 @@ export function useTransactions(businessId?: string) {
       if (error) throw error;
       return data;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['transactions', businessId]);
-      },
-    }
-  );
+    onSuccess: () => {
+      // `invalidateQueries` agora também recebe um objeto
+      queryClient.invalidateQueries({ queryKey: ['transactions', businessId] });
+    },
+  });
 
-  const updateTransactionMutation = useMutation(
-    async ({ id, ...updates }: Partial<Transaction> & { id: string }) => {
+  const updateTransactionMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Transaction> & { id: string }) => {
       const { data, error } = await supabase
         .from('transactions')
         .update(updates)
@@ -57,15 +58,13 @@ export function useTransactions(businessId?: string) {
       if (error) throw error;
       return data;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['transactions', businessId]);
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions', businessId] });
+    },
+  });
 
-  const deleteTransactionMutation = useMutation(
-    async (id: string) => {
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('transactions')
         .delete()
@@ -73,15 +72,13 @@ export function useTransactions(businessId?: string) {
 
       if (error) throw error;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['transactions', businessId]);
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions', businessId] });
+    },
+  });
 
-  const importTransactionsMutation = useMutation(
-    async (file: File) => {
+  const importTransactionsMutation = useMutation({
+    mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('business_id', businessId!);
@@ -97,12 +94,10 @@ export function useTransactions(businessId?: string) {
 
       return response.json();
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['transactions', businessId]);
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions', businessId] });
+    },
+  });
 
   return {
     transactions,
@@ -111,9 +106,9 @@ export function useTransactions(businessId?: string) {
     updateTransaction: updateTransactionMutation.mutate,
     deleteTransaction: deleteTransactionMutation.mutate,
     importTransactions: importTransactionsMutation.mutate,
-    isCreating: createTransactionMutation.isLoading,
-    isUpdating: updateTransactionMutation.isLoading,
-    isDeleting: deleteTransactionMutation.isLoading,
-    isImporting: importTransactionsMutation.isLoading,
+    isCreating: createTransactionMutation.isPending,
+    isUpdating: updateTransactionMutation.isPending,
+    isDeleting: deleteTransactionMutation.isPending,
+    isImporting: importTransactionsMutation.isPending,
   };
 }
