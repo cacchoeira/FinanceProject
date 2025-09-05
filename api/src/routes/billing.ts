@@ -16,6 +16,10 @@ const createCheckoutSchema = z.object({
   cancelUrl: z.string().url(),
 });
 
+const createPortalSchema = z.object({
+  returnUrl: z.string().url(),
+});
+
 // Create checkout session
 router.post('/checkout', 
   authenticateToken,
@@ -29,11 +33,22 @@ router.post('/checkout',
     // Get or create Stripe customer
     let customerId: string;
     
-    const { data: account, error: accountError } = await supabase
-      .from('accounts')
-      .select('stripe_customer_id')
+    // Get user's account through business roles
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_business_roles')
+      .select(`
+        account_id,
+        accounts!inner(*)
+      `)
+      .eq('user_id', req.user.id)
       .limit(1)
       .single();
+
+    if (roleError || !userRole) {
+      throw createError('Account not found', 404);
+    }
+
+    const account = userRole.accounts;
 
     if (account?.stripe_customer_id) {
       customerId = account.stripe_customer_id;
@@ -42,6 +57,7 @@ router.post('/checkout',
         email: req.user.email,
         metadata: {
           user_id: req.user.id,
+          account_id: account.id,
         },
       });
       customerId = customer.id;
@@ -50,7 +66,7 @@ router.post('/checkout',
       await supabase
         .from('accounts')
         .update({ stripe_customer_id: customerId })
-        .eq('id', account?.id);
+        .eq('id', account.id);
     }
 
     // Create checkout session
@@ -68,10 +84,96 @@ router.post('/checkout',
       cancel_url: cancelUrl,
       metadata: {
         user_id: req.user.id,
+        account_id: account.id,
       },
     });
 
     res.json({ url: session.url });
+  })
+);
+
+// Create customer portal session
+router.post('/portal', 
+  authenticateToken,
+  asyncHandler(async (req: AuthRequest, res: express.Response) => {
+    const { returnUrl } = createPortalSchema.parse(req.body);
+
+    if (!req.user) {
+      throw createError('User not authenticated', 401);
+    }
+
+    // Get user's account
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_business_roles')
+      .select(`
+        account_id,
+        accounts!inner(*)
+      `)
+      .eq('user_id', req.user.id)
+      .limit(1)
+      .single();
+
+    if (roleError || !userRole) {
+      throw createError('Account not found', 404);
+    }
+
+    const account = userRole.accounts;
+
+    if (!account.stripe_customer_id) {
+      throw createError('No billing account found', 404);
+    }
+
+    // Create portal session
+    const session = await stripe.billingPortal.sessions.create({
+      customer: account.stripe_customer_id,
+      return_url: returnUrl,
+    });
+
+    res.json({ url: session.url });
+  })
+);
+
+// Get subscription status
+router.get('/subscription', 
+  authenticateToken,
+  asyncHandler(async (req: AuthRequest, res: express.Response) => {
+    if (!req.user) {
+      throw createError('User not authenticated', 401);
+    }
+
+    // Get user's account
+    const { data: userRole, error: roleError } = await supabase
+      .from('accounts')
+      .select(`
+        *,
+        user_business_roles!inner(user_id)
+      `)
+      .eq('user_business_roles.user_id', req.user.id)
+      .limit(1)
+      .single();
+
+    if (roleError || !userRole) {
+      throw createError('Account not found', 404);
+    }
+
+    let stripeSubscription = null;
+    if (userRole.stripe_customer_id) {
+      try {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: userRole.stripe_customer_id,
+          status: 'all',
+          limit: 1,
+        });
+        stripeSubscription = subscriptions.data[0] || null;
+      } catch (error) {
+        console.error('Error fetching Stripe subscription:', error);
+      }
+    }
+
+    res.json({
+      account: userRole,
+      subscription: stripeSubscription,
+    });
   })
 );
 

@@ -79,7 +79,12 @@ npm install
    - Click "Connect to Supabase" in the top right
    - Run the provided migrations in the Supabase SQL editor
 
-3. **Start Development**:
+3. **Configure Stripe**:
+   - Create a Stripe account and get your API keys
+   - Update the price IDs in `web/src/config/stripe.ts`
+   - Set up webhook endpoints for subscription events
+
+4. **Start Development**:
 ```bash
 npm run dev
 ```
