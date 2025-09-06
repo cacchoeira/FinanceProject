@@ -1,5 +1,3 @@
-// src/components/auth/SignupForm.tsx
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +9,6 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
@@ -30,7 +27,6 @@ export function SignupForm() {
   const { signUp } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const navigate = useNavigate();
 
   const {
     register,
@@ -42,22 +38,14 @@ export function SignupForm() {
 
   const onSubmit = async (data: SignupFormData) => {
     try {
-      const { error, data: userData } = await signUp(data.email, data.password, data.fullName);
-
+      const { error } = await signUp(data.email, data.password, data.fullName);
       if (error) {
-        if (error.message.includes('user already registered')) {
-          toast.error('This email is already registered. Please log in.');
-        } else {
-          toast.error(error.message);
-        }
-      } else if (userData?.user) {
+        toast.error(error.message);
+      } else {
         toast.success('Account created successfully! Please check your email to verify your account.');
-        // --- ALTERADO ---
-        // Redireciona para a nova página de onboarding, não para o dashboard
-        navigate('/onboarding');
       }
     } catch (error) {
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error('An unexpected error occurred');
     }
   };
 

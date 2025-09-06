@@ -1,7 +1,5 @@
-// src/hooks/useAuth.ts
-
 import { useState, useEffect } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../config/supabase';
 
 export function useAuth() {
@@ -52,8 +50,7 @@ export function useAuth() {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    // Supabase signOut returns only `error` so we return a consistent object.
-    return { data: null, error };
+    return { error };
   };
 
   const resetPassword = async (email: string) => {

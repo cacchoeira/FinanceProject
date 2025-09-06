@@ -9,9 +9,9 @@ if (!stripePublishableKey) {
 export const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 export const STRIPE_PRICE_IDS = {
-  FREE: 'prod_T0CfBGKatoyRxx',
-  PRO: 'prod_T0CXuskYTb24vt', // Replace with actual Stripe price ID
-  ENTERPRISE: 'prod_T0CdvIcteXTmlU', // Replace with actual Stripe price ID
+  FREE: null,
+  PRO: 'price_1234567890', // Replace with actual Stripe price ID
+  ENTERPRISE: 'price_0987654321', // Replace with actual Stripe price ID
 } as const;
 
 export const PLAN_FEATURES = {
