@@ -1,5 +1,6 @@
+// src/hooks/useStripe.ts
+
 import { useState } from 'react';
-import { stripePromise } from '../config/stripe';
 import { supabase } from '../config/supabase';
 import toast from 'react-hot-toast';
 
@@ -15,7 +16,6 @@ export function useStripe() {
         throw new Error('User not authenticated');
       }
 
-      // Create checkout session via your API
       const response = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: {
@@ -30,15 +30,18 @@ export function useStripe() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        // --- ADDED: More detailed error handling for better debugging ---
+        const errorData = await response.json().catch(() => ({ message: 'No error message available from backend' }));
+        const errorMessage = `Failed to create checkout session: ${errorData.message || response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const { url } = await response.json();
       
-      // Redirect to Stripe Checkout
       window.location.href = url;
     } catch (error) {
       console.error('Checkout error:', error);
+      // Ensure the error message is user-friendly and not the full backend response
       toast.error('Failed to start checkout process');
     } finally {
       setLoading(false);
@@ -66,7 +69,10 @@ export function useStripe() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create portal session');
+        // --- ADDED: More detailed error handling for portal session ---
+        const errorData = await response.json().catch(() => ({ message: 'No error message available from backend' }));
+        const errorMessage = `Failed to create portal session: ${errorData.message || response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const { url } = await response.json();

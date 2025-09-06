@@ -7,9 +7,9 @@ export function useBusiness() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: businesses = [], isLoading } = useQuery<Business[]>(
-    'businesses',
-    async () => {
+  const { data: businesses = [], isLoading } = useQuery<Business[]>({
+    queryKey: ['businesses'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('businesses')
         .select(`
@@ -20,11 +20,11 @@ export function useBusiness() {
 
       if (error) throw error;
       return data;
-    }
-  );
+    },
+  });
 
-  const createBusinessMutation = useMutation(
-    async (business: Partial<Business>) => {
+  const createBusinessMutation = useMutation({
+    mutationFn: async (business: Partial<Business>) => {
       const { data, error } = await supabase
         .from('businesses')
         .insert([business])
@@ -34,15 +34,13 @@ export function useBusiness() {
       if (error) throw error;
       return data;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('businesses');
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businesses'] });
+    },
+  });
 
-  const updateBusinessMutation = useMutation(
-    async ({ id, ...updates }: Partial<Business> & { id: string }) => {
+  const updateBusinessMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Business> & { id: string }) => {
       const { data, error } = await supabase
         .from('businesses')
         .update(updates)
@@ -53,12 +51,10 @@ export function useBusiness() {
       if (error) throw error;
       return data;
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('businesses');
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businesses'] });
+    },
+  });
 
   useEffect(() => {
     if (businesses.length > 0 && !selectedBusiness) {
@@ -73,7 +69,7 @@ export function useBusiness() {
     isLoading,
     createBusiness: createBusinessMutation.mutate,
     updateBusiness: updateBusinessMutation.mutate,
-    isCreating: createBusinessMutation.isLoading,
-    isUpdating: updateBusinessMutation.isLoading,
+    isCreating: createBusinessMutation.isPending,
+    isUpdating: updateBusinessMutation.isPending,
   };
 }

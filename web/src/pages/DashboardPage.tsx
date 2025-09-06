@@ -1,10 +1,9 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
   Activity,
   CreditCard
 } from 'lucide-react';
@@ -15,8 +14,40 @@ import { useBusiness } from '../hooks/useBusiness';
 
 export function DashboardPage() {
   const { t } = useTranslation();
-  const { selectedBusiness } = useBusiness();
-  const { transactions } = useTransactions(selectedBusiness?.id);
+  // --- ALTERADO ---
+  // Acessa o estado de loading do useBusiness
+  const { selectedBusiness, isLoading: isBusinessLoading } = useBusiness();
+
+  // --- ALTERADO ---
+  // Verifica se o negócio está carregando ou se não foi selecionado
+  if (isBusinessLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
+
+  // Se o negócio não existir após o carregamento, exibe uma mensagem
+  if (!selectedBusiness) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-600">
+        You don't have a business selected. Please go to settings to create one.
+      </div>
+    );
+  }
+
+  // --- INALTERADO ---
+  // O restante do código só é executado se selectedBusiness existir
+  const { transactions, isLoading } = useTransactions(selectedBusiness.id);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
 
   // Calculate metrics from transactions
   const totalRevenue = transactions

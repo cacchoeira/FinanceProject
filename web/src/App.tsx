@@ -12,8 +12,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TransactionsPage } from './pages/TransactionsPage';
-import { PricingPage } from './pages/PricingPage';
-import { SettingsPage } from './pages/SettingsPage';
+import { OnboardingPage } from './pages/OnboardingPage';
 
 // Protected Route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -38,13 +37,14 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        {/* Public routes */}
+        {/* Rotas públicas renderizadas diretamente, sem um layout pai */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         
-        {/* Protected dashboard routes */}
+        {/* Rotas protegidas */}
+        <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
+
         <Route
           path="/dashboard"
           element={
@@ -57,7 +57,7 @@ function App() {
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="forecasts" element={<div className="p-8 text-center text-gray-600">Forecasting page coming soon</div>} />
           <Route path="reports" element={<div className="p-8 text-center text-gray-600">Reports page coming soon</div>} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings" element={<div className="p-8 text-center text-gray-600">Settings page coming soon</div>} />
         </Route>
         
         {/* Catch all route */}
